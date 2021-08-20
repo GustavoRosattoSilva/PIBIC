@@ -4,7 +4,8 @@ const int endereco_MPU = 0x68; //Declara o endereço de comunicação entre o ar
 
 // Declaração de variáveis
 float Grau_x = 0, Grau_y = 0, Grau_z = 0, Aceleracao_x = 0, Aceleracao_y = 0, Aceleracao_z = 0, Temperatura = 0, sensibilidade_giroscopio = 1, sensibilidade_acelerometro = 1;
-int auxiliar_giroscopio = 1, auxiliar_acelerometro = 1;
+float Auxiliar_Grau_x = 0, Auxiliar_Grau_y = 0, Auxiliar_Grau_z = 0, tempo_inicial = 0, tempo_final = 0, auxiliar_tempo = 0, Angulo_Grau_y = 0, Angulo_Grau_x = 0, Angulo_Grau_z = 0;
+int auxiliar_giroscopio = 1, auxiliar_acelerometro = 1, somador = 0;
 
 void setup() {
   
@@ -44,11 +45,11 @@ void loop() {
 
   //Imprime os dados no monitor serial
   Serial.print("Angulo em x: ");
-  Serial.println(Grau_x);
+  Serial.println(Angulo_Grau_x);
   Serial.print("Angulo em y: ");
-  Serial.println(Grau_y);
+  Serial.println(Angulo_Grau_y);
   Serial.print("Angulo em z: ");
-  Serial.println(Grau_z);
+  Serial.println(Angulo_Grau_z);
   Serial.print("\n");
 
   Serial.print("Aceleração em x: ");
@@ -177,7 +178,38 @@ void fundo_de_escala_giroscopio(int i){
     Grau_x = Grau_x/sensibilidade_giroscopio;
     Grau_y = Grau_y/sensibilidade_giroscopio;
     Grau_z = Grau_z/sensibilidade_giroscopio;
-
-  //Obtém os angulos
   
+ }
+
+ void converter(){
+  
+    tempo_inicial = millis(); 
+    
+    somador = 0;
+
+    auxiliar_tempo = 0;
+    
+    while (auxiliar_tempo < 30){
+
+      get_data();
+      tempo_final = millis();
+      auxiliar_tempo = tempo_final - tempo_inicial;
+      Auxiliar_Grau_x += Grau_x;
+      Auxiliar_Grau_y += Grau_y;
+      Auxiliar_Grau_z += Grau_z;
+      somador++;
+      
+    
+   }
+   
+   //encontra a velocidade angular média
+   Auxiliar_Grau_x = Auxiliar_Grau_x/somador;
+   Auxiliar_Grau_y = Auxiliar_Grau_y/somador;
+   Auxiliar_Grau_z = Auxiliar_Grau_z/somador;
+
+   //encontra a angulo 
+   Angulo_Grau_x += Auxiliar_Grau_x;
+   Angulo_Grau_y += Auxiliar_Grau_y;
+   Angulo_Grau_z += Auxiliar_Grau_z;
+ 
  }
