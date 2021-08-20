@@ -22,6 +22,9 @@ void loop() {
   Grau_x = mpu6050.getAngleX();
   Grau_y = mpu6050.getAngleY();
   Grau_z = mpu6050.getAngleZ();
+  Aceleracao_x = mpu6050.getAccX();
+  Aceleracao_y = mpu6050.getAccY();
+  Aceleracao_z = mpu6050.getAccZ();
 
 
   //Imprime os dados no monitor serial
@@ -31,6 +34,14 @@ void loop() {
   Serial.println(Grau_y);
   Serial.print("Angulo em z: ");
   Serial.println(Grau_z);
+  Serial.print("\n");
+
+  Serial.print("Aceleração em x: ");
+  Serial.println(Aceleracao_x);
+  Serial.print("Aceleração em y: ");
+  Serial.println(Aceleracao_y);
+  Serial.print("Aceleração em z: ");
+  Serial.println(Aceleracao_z);
   Serial.print("\n");
 
   delay(500); //delay para ser possivel ler os dados
