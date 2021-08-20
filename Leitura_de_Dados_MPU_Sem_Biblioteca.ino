@@ -41,7 +41,7 @@ void loop() {
   Wire.requestFrom(endereco_MPU, 14, true); // Solicita os dados do sensor
 
 
-  get_data();
+  converter();
 
   //Imprime os dados no monitor serial
   Serial.print("Angulo em x: ");
