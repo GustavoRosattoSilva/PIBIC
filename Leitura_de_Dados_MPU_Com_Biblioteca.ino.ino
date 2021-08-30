@@ -17,6 +17,8 @@ void setup() {
 
 void loop() {
 
+  mpu6050.update(); //atualiza a leitura
+
   //Obtém os angulos
   
   Grau_x = mpu6050.getAngleX();
