@@ -1,9 +1,8 @@
 #include <MPU6050_tockn.h> //Biblioteca para facilitar a leitura de dados
 #include <Wire.h> //Biblioteca para a comunicação I2C
 
-MPU6050 mpu6050(Wire); //Entrega a biblioteca Wire.h como argumento para a biblioteca MPU6050_tockn.h
 
-const float ax = 1, ay = 1, az = 1, bx = -22.575, by = 71.9675, bz = 0.925; //Parâmetro de Calibração do Arduino
+MPU6050 mpu6050(Wire); //Entrega a biblioteca Wire.h como argumento para a biblioteca MPU6050_tockn.h
 //z está aumentando muito com o tempo
 
 float Grau_x = 0, Grau_y = 0, Grau_z = 0, Aceleracao_x = 0, Aceleracao_y = 0, Aceleracao_z = 0; // Declaração de variáveis
@@ -11,7 +10,8 @@ int count = 0;
 
 void setup() {
   Serial.begin(9600); //Inicializa a comunicação serial a uma taxa de 9600 bit por segundo
- 
+
+
   Wire.begin(); //Inicializa a biblioteca Wire.h
   
   mpu6050.begin(); //Inicializa a biblioteca MPU6050_tockn.h
@@ -51,7 +51,7 @@ void loop() {
   Grau_x = calcoffX();
   Grau_y = calcoffY();
   Grau_z = calcoffZ();
-
+ 
   //Imprime os dados no monitor serial
   Serial.print("Angulo em x: ");
   Serial.println(Grau_x);
@@ -75,13 +75,13 @@ void loop() {
 //funções para calibrar os eixos
 
 float calcoffX(){
-  return bx + Grau_x*ax;
+  return -16.11 + Grau_x*0.74705 + (Grau_x*Grau_x)*0.00074804 + (Grau_x*Grau_x*Grau_x)*0.00010619;
 }
 
 float calcoffY(){
-  return by + Grau_y*ay;
+  return -89.793 + Grau_y*(-1.242);
 }
 
 float calcoffZ(){
-  return bz + Grau_z*az;
+  return Grau_z - 0.78;
 }
