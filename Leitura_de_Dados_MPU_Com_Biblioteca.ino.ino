@@ -5,8 +5,9 @@
 MPU6050 mpu6050(Wire); //Entrega a biblioteca Wire.h como argumento para a biblioteca MPU6050_tockn.h
 //z está aumentando muito com o tempo
 
-float Grau_x = 0, Grau_y = 0, Grau_z = 0, Aceleracao_x = 0, Aceleracao_y = 0, Aceleracao_z = 0; // Declaração de variáveis
+float Grau_x = 0, Grau_y = 0, Grau_z = 0, Aceleracao_x = 0, Aceleracao_y = 0, Aceleracao_z = 0, m1, m2; // Declaração de variáveis
 int count = 0;
+char k;
 
 void setup() {
   Serial.begin(9600); //Inicializa a comunicação serial a uma taxa de 9600 bit por segundo
@@ -16,11 +17,13 @@ void setup() {
   
   mpu6050.begin(); //Inicializa a biblioteca MPU6050_tockn.h
   mpu6050.calcGyroOffsets(true); //Ativa a calibração interna da biblioteca
-
+  Serial.println();
+  
+  m1 = millis();
 }
-
 void loop() {
 
+  m2 = millis() - m1;
   count = 0;
 
   Grau_x = 0;
@@ -48,18 +51,24 @@ void loop() {
   Grau_z = Grau_z/100;
 
   //Calibração dos angulos
-  Grau_x = calcoffX();
-  Grau_y = calcoffY();
+  //Grau_x = calcoffX();
+  //Grau_y = calcoffY();
   Grau_z = calcoffZ();
- 
+  k = 'o';
+  //k = Serial.read();
+  if (k =='o'){
+      Serial.print(m2);
+      Serial.print(" ");
+      Serial.println(Grau_z);
+  }
   //Imprime os dados no monitor serial
-  Serial.print("Angulo em x: ");
-  Serial.println(Grau_x);
-  Serial.print("Angulo em y: ");
-  Serial.println(Grau_y);
-  Serial.print("Angulo em z: ");
-  Serial.println(Grau_z);
-  Serial.print("\n");
+  //Serial.print("Angulo em x: ");
+  //Serial.println(Grau_x);
+  //Serial.print("Angulo em y: ");
+  //Serial.println(Grau_y);
+  //Serial.print("Angulo em z: ");
+  //Serial.println(Grau_z);
+  //Serial.print("\n");
 
   /*Serial.print("Aceleração em x: ");
   Serial.println(Aceleracao_x);
@@ -83,5 +92,5 @@ float calcoffY(){
 }
 
 float calcoffZ(){
-  return Grau_z - 0.78;
+  return Grau_z;
 }
