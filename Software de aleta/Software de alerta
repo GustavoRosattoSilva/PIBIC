@@ -1,0 +1,280 @@
+import PySimpleGUI as psg
+import serial
+import serial.tools.list_ports
+import sys
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pandas
+import seaborn
+import numpy as np
+
+amplitude_critica = 15
+frequencia_critica = 12
+
+controle_critico = True
+controle_critico_2 = True
+amplitude = 13
+frequência = 58
+aceleração = 50
+x = 1
+tempo = 1
+
+dados_instantaneos = {'Tempo': 0.0, 'AceleraçãoX': 0.0, 'AmplitudeX': 0.0, 'AceleraçãoY': 0.0, 'AmplitudeY': 0.0, 'AceleraçãoZ': 0.0, 'AmplitudeZ': 0.0,}
+
+def teste_1(tempo):
+    
+    dado = open('x.dat', 'a')
+
+    x = np.sin(tempo)
+
+    linha_str = str(tempo) + ' ' + str(x) + '\n'
+
+    dado.writelines(linha_str)
+
+def cria_arquivos(dados_instantaneos):
+
+	dadox = open('x.dat', 'a')
+
+	dadoy = open('y.dat', 'a')
+
+	dadoz = open('z.dat', 'a')
+
+	x = dados_instantaneos['Tempo'] + ' ' + dados_instantaneos['AmplitudeX'] + '\n'
+
+	y = dados_instantaneos['Tempo'] + ' ' + dados_instantaneos['AmplitudeY'] + '\n'
+
+	z = dados_instantaneos['Tempo'] + ' ' + dados_instantaneos['AmplitudeZ'] + '\n'
+
+	dadox.writelines(x)
+
+	dadoy.writelines(y)
+
+	dadoz.writelines(z)
+	
+
+def Janela_De_Inicio():
+
+	lista_portas = Lista_Serial()
+
+	psg.theme('DarkGreen6')
+	
+	layout=[[psg.Text('Porta:',size=(20, 1), font='Lucida',justification='left')],
+	[psg.Combo(lista_portas,key='porta')],
+	[psg.Text('Velocidade',size=(30, 1), font='Lucida',justification='left')],
+	[psg.Combo([300,1200,2400,4800,9600,19200,38400,57600,74880,115200,230400,250000,500000,1000000,2000000], default_value = 9600,key='velocidade')],
+	[psg.Button('Iniciar', font=('Times New Roman',12)),psg.Button('Cancelar', font=('Times New Roman',12))]]
+	
+	Janela = psg.Window('Iniciar Comunicação Serial',layout)
+	
+	Controle, Comandos = Janela.read()
+	
+	Janela.close()
+
+	return Controle, Comandos
+
+
+
+def Lista_Serial():
+
+	portas = list(serial.tools.list_ports.comports())
+
+	lista_portas = []
+
+	for n in portas:
+	
+		lista_portas.append(str(n[0]))
+
+	return lista_portas
+
+
+def Janela_De_Erro():
+
+		psg.theme('DarkGreen6')
+
+		layout=[[psg.Text('porta serial não encontrada',size=(30, 1), font='Lucida',justification='left')],
+        [psg.Button('Ok', font=('Times New Roman',12))]]
+	
+		Janela = psg.Window('ERRO',layout)
+
+		Janela.read()
+
+		Janela.close()
+
+def Janela_Principal():
+	
+	psg.theme('DarkGreen4')
+
+	layout_barra_esquerda = [[psg.Text('Amplitude:',size = (10, 1), font = 'Lucida',justification = 'left')],
+	[psg.Text('{:.02f}°'.format(amplitude),size = (10, 1), key = 'Saida_amplitude', font = 'Lucida',justification = 'left')],
+	[psg.Text('Frequência:',size = (10, 1), font = 'Lucida',justification = 'left')],
+	[psg.Text('{:.02f}Hz'.format(frequência),size = (10, 1), key = 'Saida_frequência',  font = 'Lucida',justification = 'left')],
+	[psg.Text('Aceleração:',size = (10, 1), font = 'Lucida',justification = 'left')],
+	[psg.Text('{:.02f}m/s\u00b2'.format(aceleração),size = (10, 1), key = 'Saida_aceleração',  font = 'Lucida',justification = 'left')]]
+
+	psg.theme('DarkGreen4')
+
+	layout_barra_inferior = [[psg.Text('Serial:',size = (5, 1), font = 'Lucida',justification = 'left'), psg.Text(porta,size = (15, 1), font = 'Lucida',justification = 'left'), psg.Text('Velocidade:',size = (9, 1), font = 'Lucida',justification = 'left'),psg.Text(velocidade,size = (15, 1), font = 'Lucida',justification = 'left')]]
+
+	psg.theme('DarkGreen6')
+
+	layout_quadro_imagem = [[psg.Text(size = (30,15))]]
+
+	psg.theme('DarkGreen1')
+
+	layout_barra_direita = [[psg.Text('Amplitude Crítica',size = (13, 3), key = 'Alerta_1', font = 'Lucida',justification = 'left', background_color = 'Green', text_color = 'Green')],[psg.Text('Frequência Crítica',size = (13, 3), key = 'Alerta_2' , font = 'Lucida',justification = 'left', background_color = 'Green', text_color = 'Green')]]
+
+	layout_gráfico = [[psg.Canvas(key='figCanvas', size = (30,15))]]
+
+	psg.theme('black')
+
+	layout = [[[psg.Column(layout_barra_esquerda),psg.Column(layout_quadro_imagem),psg.Column(layout_barra_direita)]],
+	[layout_gráfico],
+	[layout_barra_inferior]]
+
+	Janela = psg.Window('Oscilação Barco',layout, finalize=True, resizable=True, element_justification="right")
+
+	fig = plt.figure()
+	df = pandas.read_table('x.dat' , sep = ' ', names = ['Tempo (s)','Ângulo (°)']) 
+	    
+	seaborn.lineplot(x='Tempo (s)', y='Ângulo (°)', data=df, color='blue').set(title='Oscilação em Roll')
+
+
+	figure_canvas_agg = FigureCanvasTkAgg(fig, Janela['figCanvas'].TKCanvas)
+	figure_canvas_agg.draw()
+	figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=False)
+
+
+	return Janela, fig, figure_canvas_agg
+
+Controle, Comandos = Janela_De_Inicio()
+
+if Controle == 'Iniciar':
+	
+	porta = Comandos['porta']
+	velocidade = Comandos['velocidade']
+	dado = open("teste.txt", "w")
+
+	try:
+
+		Janela, fig, figure_canvas_agg = Janela_Principal()
+
+		with serial.Serial(porta, velocidade) as ser:
+
+			while True:
+
+				Controle, Comando = Janela.read(timeout = 10) 
+
+				if ser.in_waiting != 0:
+			
+					linha = ser.readline()
+			
+					try:
+				
+						linha_str = linha.decode('utf-8')
+
+						dado.writelines(linha_str)
+
+						linha_str = linha_str.split()
+
+						dados_instantaneos['Tempo'] = linha_str[0]
+						dados_instantaneos['AmplitudeX'] = linha_str[1]
+						dados_instantaneos['AmplitudeY'] = linha_str[2]
+						dados_instantaneos['AmplitudeZ'] = linha_str[3]
+						dados_instantaneos['AceleraçãoX'] = linha_str[4]
+						dados_instantaneos['AceleraçãoY'] = linha_str[5]
+						dados_instantaneos['AceleraçãoZ'] = linha_str[6]
+
+						cria_arquivos(dados_instantaneos)						
+
+						print(dados_instantaneos)
+
+					except Exception as e:
+
+						pass
+				
+				if Controle in (None, 'Quit'):
+				
+					break
+
+				else:
+
+					Janela['Saida_amplitude'].update('{:.02f}°'.format(amplitude))
+					Janela['Saida_frequência'].update('{:.02f}Hz'.format(frequência))
+					Janela['Saida_aceleração'].update('{:.02f}m/s\u00b2'.format(aceleração))
+
+					fig.clear()
+
+					df = pandas.read_table('x.dat' , sep = ' ', names = ['Tempo (s)','Ângulo (°)'])
+
+					seaborn.lineplot(x='Tempo (s)', y='Ângulo (°)', data=df.tail(50), color='blue').set(title='Oscilação em Roll')
+
+					figure_canvas_agg.draw()
+
+					if amplitude > amplitude_critica:
+
+						Janela['Alerta_1'].update(background_color = 'Red', text_color = 'Black')
+
+						if controle_critico:
+
+							Janela['Alerta_1'].update(background_color = 'White', text_color = 'Black')
+
+							controle_critico = not controle_critico
+
+						else:
+
+							Janela['Alerta_1'].update(background_color = 'Red', text_color = 'Black')
+
+							controle_critico = not controle_critico
+
+					else:
+
+						Janela['Alerta_1'].update(background_color = 'Green', text_color = 'Green')
+
+
+					if frequência > frequencia_critica:
+
+						Janela['Alerta_2'].update(background_color = 'Red', text_color = 'Black')
+
+						if controle_critico_2:
+
+							Janela['Alerta_2'].update(background_color = 'White', text_color = 'Black')
+
+							controle_critico_2 = not controle_critico_2
+
+						else:
+
+							Janela['Alerta_2'].update(background_color = 'Red', text_color = 'Black')
+
+							controle_critico_2 = not controle_critico_2
+
+					else:
+
+						Janela['Alerta_2'].update(background_color = 'Green', text_color = 'Green')
+
+
+
+				amplitude += 1.01
+				frequência += 1.01
+				aceleração += 1.01
+				tempo += 1
+
+				if amplitude > 50:
+
+					amplitude = 0
+
+				if frequência > 50:
+
+					frequência = 0
+
+				if aceleração > 50:
+
+					aceleração = 0
+				
+				#teste_1(tempo)
+			
+			Janela.close()
+
+	except Exception as e:
+
+		Janela_De_Erro()
